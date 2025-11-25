@@ -15,7 +15,13 @@ import {
 } from '@/components/ui/select';
 import { CheckCircle2, Circle, DollarSign, X, Copy } from 'lucide-react';
 import Link from 'next/link';
-import { gamesPricing, getAvailableGames, calculateTotal } from '@/lib/games-pricing';
+import { gamesPricing, getAvailableGames, calculateTotal, isTeamGame, getRequiredPlayers } from '@/lib/games-pricing';
+
+type TeamMember = {
+  name: string;
+  rollNumber: string;
+  contactNumber: string;
+};
 
 type FormData = {
   email: string;
@@ -25,6 +31,7 @@ type FormData = {
   alternativeContactNumber: string;
   gender: 'boys' | 'girls' | '';
   selectedGames: string[];
+  teamMembers: Record<string, TeamMember[]>; // gameName -> array of team members
   paymentMethod: 'cash' | 'online' | '';
   transactionId: string;
   screenshotUrl: string;
@@ -43,6 +50,7 @@ export default function RegisterPage() {
     alternativeContactNumber: '',
     gender: '',
     selectedGames: [],
+    teamMembers: {},
     paymentMethod: '',
     transactionId: '',
     screenshotUrl: '',
@@ -52,8 +60,8 @@ export default function RegisterPage() {
   useEffect(() => {
     if (formData.gender) {
       setAvailableGames(getAvailableGames(formData.gender));
-      // Clear selected games when gender changes
-      setFormData((prev) => ({ ...prev, selectedGames: [] }));
+      // Clear selected games and team members when gender changes
+      setFormData((prev) => ({ ...prev, selectedGames: [], teamMembers: {} }));
     }
   }, [formData.gender]);
 
@@ -65,10 +73,48 @@ export default function RegisterPage() {
     setFormData((prev) => {
       const isSelected = prev.selectedGames.includes(gameName);
       if (isSelected) {
-        return { ...prev, selectedGames: prev.selectedGames.filter((g) => g !== gameName) };
+        // Remove game and its team members
+        const newTeamMembers = { ...prev.teamMembers };
+        delete newTeamMembers[gameName];
+        return { 
+          ...prev, 
+          selectedGames: prev.selectedGames.filter((g) => g !== gameName),
+          teamMembers: newTeamMembers
+        };
       } else {
-        return { ...prev, selectedGames: [...prev.selectedGames, gameName] };
+        // Add game and initialize team members if it's a team game
+        const newTeamMembers = { ...prev.teamMembers };
+        if (formData.gender && isTeamGame(gameName, formData.gender)) {
+          const requiredPlayers = getRequiredPlayers(gameName, formData.gender) || 0;
+          // Initialize with empty team members (excluding the current player)
+          newTeamMembers[gameName] = Array(requiredPlayers - 1).fill(null).map(() => ({
+            name: '',
+            rollNumber: '',
+            contactNumber: '',
+          }));
+        }
+        return { 
+          ...prev, 
+          selectedGames: [...prev.selectedGames, gameName],
+          teamMembers: newTeamMembers
+        };
       }
+    });
+  };
+
+  const handleTeamMemberChange = (gameName: string, index: number, field: keyof TeamMember, value: string) => {
+    setFormData((prev) => {
+      const newTeamMembers = { ...prev.teamMembers };
+      if (!newTeamMembers[gameName]) {
+        newTeamMembers[gameName] = [];
+      }
+      const updatedMembers = [...newTeamMembers[gameName]];
+      updatedMembers[index] = {
+        ...updatedMembers[index],
+        [field]: value,
+      };
+      newTeamMembers[gameName] = updatedMembers;
+      return { ...prev, teamMembers: newTeamMembers };
     });
   };
 
@@ -98,6 +144,7 @@ export default function RegisterPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          teamMembers: formData.teamMembers,
           ...formData,
           totalAmount,
         }),
@@ -319,6 +366,65 @@ export default function RegisterPage() {
                         );
                       })}
                     </div>
+                    {/* Team Member Fields */}
+                    {formData.selectedGames.map((gameName) => {
+                      if (!formData.gender || !isTeamGame(gameName, formData.gender)) return null;
+                      const requiredPlayers = getRequiredPlayers(gameName, formData.gender) || 0;
+                      const teamMembers = formData.teamMembers[gameName] || [];
+                      
+                      return (
+                        <div key={gameName} className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg">
+                          <h4 className="font-semibold text-base sm:text-lg mb-3 text-blue-900">
+                            {gameName} - Team Members ({requiredPlayers} players required)
+                          </h4>
+                          <p className="text-xs sm:text-sm text-blue-700 mb-4">
+                            You are the team captain. Please add {requiredPlayers - 1} more team member(s):
+                          </p>
+                          <div className="space-y-4">
+                            {teamMembers.map((member, index) => (
+                              <div key={index} className="bg-white p-3 sm:p-4 rounded-lg border border-blue-200">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">
+                                    {index + 1}
+                                  </div>
+                                  <span className="font-medium text-sm sm:text-base">Team Member {index + 1}</span>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                  <div>
+                                    <Label className="text-xs sm:text-sm">Name *</Label>
+                                    <Input
+                                      value={member.name}
+                                      onChange={(e) => handleTeamMemberChange(gameName, index, 'name', e.target.value)}
+                                      placeholder="Full name"
+                                      className="text-sm"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs sm:text-sm">Roll Number *</Label>
+                                    <Input
+                                      value={member.rollNumber}
+                                      onChange={(e) => handleTeamMemberChange(gameName, index, 'rollNumber', e.target.value)}
+                                      placeholder="Roll number"
+                                      className="text-sm"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs sm:text-sm">Contact Number *</Label>
+                                    <Input
+                                      value={member.contactNumber}
+                                      onChange={(e) => handleTeamMemberChange(gameName, index, 'contactNumber', e.target.value)}
+                                      placeholder="03XX-XXXXXXX"
+                                      className="text-sm"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+
                     {formData.selectedGames.length > 0 && (
                       <div className="mt-6 p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg">
                         <div className="flex items-center justify-between gap-2">
@@ -540,7 +646,7 @@ export default function RegisterPage() {
                   </div>
                   <div className="border-t pt-3">
                     <p className="text-xs sm:text-sm text-gray-600 mb-2">Selected Games ({formData.selectedGames.length})</p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-3">
                       {formData.selectedGames.map((game) => (
                         <span
                           key={game}
@@ -550,6 +656,26 @@ export default function RegisterPage() {
                         </span>
                       ))}
                     </div>
+                    {/* Display Team Members */}
+                    {formData.selectedGames.map((gameName) => {
+                      if (!formData.gender || !isTeamGame(gameName, formData.gender)) return null;
+                      const teamMembers = formData.teamMembers[gameName] || [];
+                      if (teamMembers.length === 0) return null;
+                      
+                      return (
+                        <div key={gameName} className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <p className="text-xs sm:text-sm font-semibold text-blue-900 mb-2">{gameName} Team Members:</p>
+                          <div className="space-y-2">
+                            {teamMembers.map((member, index) => (
+                              <div key={index} className="text-xs sm:text-sm text-gray-700">
+                                <span className="font-medium">{index + 1}. {member.name}</span>
+                                <span className="text-gray-500 ml-2">({member.rollNumber})</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between items-center">

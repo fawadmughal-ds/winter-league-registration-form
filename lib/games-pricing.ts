@@ -55,3 +55,14 @@ export function calculateTotal(selectedGames: string[], gender: 'boys' | 'girls'
   return total;
 }
 
+export function getRequiredPlayers(gameName: string, gender: 'boys' | 'girls'): number | null {
+  const game = gamesPricing.find((g) => g.name === gameName);
+  if (!game) return null;
+  return gender === 'boys' ? (game.boysPlayers || null) : (game.girlsPlayers || null);
+}
+
+export function isTeamGame(gameName: string, gender: 'boys' | 'girls'): boolean {
+  const requiredPlayers = getRequiredPlayers(gameName, gender);
+  return requiredPlayers !== null && requiredPlayers > 1;
+}
+

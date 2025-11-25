@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
       alternativeContactNumber,
       gender,
       selectedGames,
+      teamMembers,
       totalAmount,
       paymentMethod,
       transactionId,
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare data
     const selectedGamesJson = JSON.stringify(selectedGames);
+    const teamMembersJson = teamMembers ? JSON.stringify(teamMembers) : null;
     const totalAmountNum = Number(totalAmount);
     
     console.log('Inserting registration:', {
@@ -54,6 +56,7 @@ export async function POST(request: NextRequest) {
       rollNumber,
       gender,
       selectedGamesCount: selectedGames.length,
+      teamMembersCount: teamMembers ? Object.keys(teamMembers).length : 0,
       totalAmount: totalAmountNum,
       paymentMethod,
     });
@@ -63,11 +66,11 @@ export async function POST(request: NextRequest) {
     const result = await sql`
       INSERT INTO registrations (
         id, email, name, roll_number, contact_number, alternative_contact_number,
-        gender, selected_games, total_amount, payment_method, slip_id, transaction_id,
+        gender, selected_games, team_members, total_amount, payment_method, slip_id, transaction_id,
         screenshot_url, status, created_at, updated_at
       ) VALUES (
         ${id}, ${email}, ${name}, ${rollNumber}, ${contactNumber}, ${alternativeContactNumber || null},
-        ${gender}, ${selectedGamesJson}, ${totalAmountNum}, ${paymentMethod}, ${slipId}, ${transactionId || null},
+        ${gender}, ${selectedGamesJson}, ${teamMembersJson}, ${totalAmountNum}, ${paymentMethod}, ${slipId}, ${transactionId || null},
         ${screenshotUrl || null}, ${status}, NOW(), NOW()
       )
       RETURNING registration_number

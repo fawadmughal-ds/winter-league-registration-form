@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS registrations (
   alternative_contact_number VARCHAR(20),
   gender VARCHAR(10) NOT NULL CHECK (gender IN ('boys', 'girls')),
   selected_games TEXT NOT NULL, -- JSON array of selected games
+  team_members TEXT, -- JSON object: { gameName: [{ name, rollNumber, contactNumber }] }
   total_amount DECIMAL(10, 2) NOT NULL,
   payment_method VARCHAR(20) NOT NULL CHECK (payment_method IN ('cash', 'online')),
   slip_id VARCHAR(50),
