@@ -149,33 +149,33 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-4 sm:py-12">
       <div className="container mx-auto px-4 max-w-4xl">
-        <div className="mb-8">
-          <Link href="/" className="text-blue-600 hover:underline">
+        <div className="mb-4 sm:mb-8">
+          <Link href="/" className="text-blue-600 hover:underline text-sm sm:text-base">
             ← Back to Home
           </Link>
         </div>
 
         <Card className="shadow-xl border-2">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-            <CardTitle className="text-3xl">Registration Form</CardTitle>
-            <CardDescription className="text-blue-100">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg p-4 sm:p-6">
+            <CardTitle className="text-2xl sm:text-3xl">Registration Form</CardTitle>
+            <CardDescription className="text-blue-100 text-sm sm:text-base">
               Winter League 2025 - FCIT Sports Society
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             {/* Progress Steps */}
-            <div className="flex justify-between mb-8">
+            <div className="flex justify-between mb-6 sm:mb-8 gap-2">
               {[1, 2, 3, 4].map((s) => (
                 <div key={s} className="flex items-center flex-1">
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center w-full">
                     {step >= s ? (
-                      <CheckCircle2 className="h-8 w-8 text-blue-600" />
+                      <CheckCircle2 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
                     ) : (
-                      <Circle className="h-8 w-8 text-gray-300" />
+                      <Circle className="h-6 w-6 sm:h-8 sm:w-8 text-gray-300" />
                     )}
-                    <span className="mt-2 text-sm font-medium">Step {s}</span>
+                    <span className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium text-center">Step {s}</span>
                   </div>
                   {s < 4 && (
                     <div
@@ -191,7 +191,7 @@ export default function RegisterPage() {
             {/* Step 1: Personal Information */}
             {step === 1 && (
               <div className="space-y-4">
-                <h3 className="text-xl font-semibold mb-4">Personal Information</h3>
+                <h3 className="text-lg sm:text-xl font-semibold mb-4">Personal Information</h3>
                 <div>
                   <Label htmlFor="email">Email *</Label>
                   <Input
@@ -264,10 +264,10 @@ export default function RegisterPage() {
             {/* Step 2: Select Games */}
             {step === 2 && (
               <div className="space-y-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold">Select Games</h3>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-4">
+                  <h3 className="text-lg sm:text-xl font-semibold">Select Games</h3>
                   {formData.gender && (
-                    <div className="text-sm text-gray-600">
+                    <div className="text-xs sm:text-sm text-gray-600">
                       Gender: <span className="font-semibold capitalize">{formData.gender}</span>
                     </div>
                   )}
@@ -296,23 +296,23 @@ export default function RegisterPage() {
                           <div
                             key={game.name}
                             onClick={() => handleGameToggle(game.name)}
-                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                            className={`p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                               isSelected
                                 ? 'border-blue-600 bg-blue-50 shadow-md'
                                 : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
                             }`}
                           >
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <div className="font-semibold">{game.name}</div>
-                                <div className="text-sm text-gray-600">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-sm sm:text-base truncate">{game.name}</div>
+                                <div className="text-xs sm:text-sm text-gray-600">
                                   Rs. {price.toLocaleString()}
                                   {formData.gender === 'boys' && game.boysPlayers && ` (${game.boysPlayers} Players)`}
                                   {formData.gender === 'girls' && game.girlsPlayers && ` (${game.girlsPlayers} Players)`}
                                 </div>
                               </div>
                               {isSelected && (
-                                <CheckCircle2 className="h-6 w-6 text-blue-600" />
+                                <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0" />
                               )}
                             </div>
                           </div>
@@ -320,17 +320,17 @@ export default function RegisterPage() {
                       })}
                     </div>
                     {formData.selectedGames.length > 0 && (
-                      <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg">
-                        <div className="flex items-center justify-between">
+                      <div className="mt-6 p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg">
+                        <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <DollarSign className="h-6 w-6 text-green-600" />
-                            <span className="font-semibold text-lg">Total Amount:</span>
+                            <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+                            <span className="font-semibold text-base sm:text-lg">Total Amount:</span>
                           </div>
-                          <span className="text-2xl font-bold text-green-700">
+                          <span className="text-xl sm:text-2xl font-bold text-green-700">
                             Rs. {totalAmount.toLocaleString()}
                           </span>
                         </div>
-                        <div className="mt-2 text-sm text-gray-600">
+                        <div className="mt-2 text-xs sm:text-sm text-gray-600">
                           {formData.selectedGames.length} game(s) selected
                         </div>
                       </div>
@@ -343,10 +343,10 @@ export default function RegisterPage() {
             {/* Step 3: Payment Method */}
             {step === 3 && (
               <div className="space-y-4">
-                <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                <div className="mb-4 p-3 sm:p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold">Total Amount:</span>
-                    <span className="text-2xl font-bold text-blue-700">
+                    <span className="font-semibold text-sm sm:text-base">Total Amount:</span>
+                    <span className="text-xl sm:text-2xl font-bold text-blue-700">
                       Rs. {totalAmount.toLocaleString()}
                     </span>
                   </div>
@@ -372,24 +372,24 @@ export default function RegisterPage() {
                     {formData.paymentMethod === 'online' && (
                       <div className="mt-4 space-y-4">
                         {/* Bank Account Details */}
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg p-4">
-                          <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                            <DollarSign className="h-5 w-5 text-blue-600" />
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg p-3 sm:p-4">
+                          <h3 className="font-semibold text-base sm:text-lg mb-3 flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                             Bank Account Details
                           </h3>
                           <div className="space-y-3">
                             <div>
-                              <Label className="text-sm text-gray-600">Bank Name</Label>
-                              <p className="font-semibold text-lg">UBL</p>
+                              <Label className="text-xs sm:text-sm text-gray-600">Bank Name</Label>
+                              <p className="font-semibold text-base sm:text-lg">UBL</p>
                             </div>
                             <div>
-                              <Label className="text-sm text-gray-600">Account Name</Label>
-                              <p className="font-semibold text-lg">Fawad Mughal</p>
+                              <Label className="text-xs sm:text-sm text-gray-600">Account Name</Label>
+                              <p className="font-semibold text-base sm:text-lg">Fawad Mughal</p>
                             </div>
                             <div>
-                              <Label className="text-sm text-gray-600">Account Number</Label>
-                              <div className="flex items-center gap-2 mt-1">
-                                <p className="font-mono font-semibold text-lg text-blue-700">
+                              <Label className="text-xs sm:text-sm text-gray-600">Account Number</Label>
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-1">
+                                <p className="font-mono font-semibold text-base sm:text-lg text-blue-700 break-all">
                                   0863286208011
                                 </p>
                                 <Button
@@ -418,7 +418,7 @@ export default function RegisterPage() {
                             </div>
                           </div>
                           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p className="text-sm text-yellow-800">
+                            <p className="text-xs sm:text-sm text-yellow-800">
                               <strong>Important:</strong> Please transfer the exact amount (
                               <strong>Rs. {totalAmount.toLocaleString()}</strong>) to this account
                               and keep the transaction receipt.
@@ -472,7 +472,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    className={`p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                       formData.paymentMethod === 'cash'
                         ? 'border-blue-600 bg-blue-50 shadow-md'
                         : 'border-gray-200 hover:border-blue-300'
@@ -489,13 +489,13 @@ export default function RegisterPage() {
                     </div>
                     {formData.paymentMethod === 'cash' && (
                       <div className="mt-4">
-                        <p className="text-sm text-gray-700 mb-2">
+                        <p className="text-xs sm:text-sm text-gray-700 mb-2">
                           Cash registration requires payment at the FCIT Sports Society desk.
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-gray-600">
                           Status: <span className="font-semibold">Will Confirm Soon</span>
                         </p>
-                        <p className="text-sm text-gray-500 mt-2">
+                        <p className="text-xs sm:text-sm text-gray-500 mt-2">
                           A cash slip ID will be generated after submission.
                         </p>
                       </div>
@@ -508,43 +508,43 @@ export default function RegisterPage() {
             {/* Step 4: Review */}
             {step === 4 && (
               <div className="space-y-4">
-                <h3 className="text-xl font-semibold mb-4">Review Your Registration</h3>
-                <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
-                  <div className="grid grid-cols-2 gap-4">
+                <h3 className="text-lg sm:text-xl font-semibold mb-4">Review Your Registration</h3>
+                <div className="space-y-3 bg-gray-50 p-3 sm:p-4 rounded-lg">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <p className="text-sm text-gray-600">Email</p>
-                      <p className="font-semibold">{formData.email}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Email</p>
+                      <p className="font-semibold text-sm sm:text-base break-all">{formData.email}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Name</p>
-                      <p className="font-semibold">{formData.name}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Name</p>
+                      <p className="font-semibold text-sm sm:text-base break-words">{formData.name}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Roll Number</p>
-                      <p className="font-semibold">{formData.rollNumber}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Roll Number</p>
+                      <p className="font-semibold text-sm sm:text-base">{formData.rollNumber}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Gender</p>
-                      <p className="font-semibold capitalize">{formData.gender}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Gender</p>
+                      <p className="font-semibold capitalize text-sm sm:text-base">{formData.gender}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Contact Number</p>
-                      <p className="font-semibold">{formData.contactNumber}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Contact Number</p>
+                      <p className="font-semibold text-sm sm:text-base break-all">{formData.contactNumber}</p>
                     </div>
                     {formData.alternativeContactNumber && (
                       <div>
-                        <p className="text-sm text-gray-600">Alternative Contact</p>
-                        <p className="font-semibold">{formData.alternativeContactNumber}</p>
+                        <p className="text-xs sm:text-sm text-gray-600">Alternative Contact</p>
+                        <p className="font-semibold text-sm sm:text-base break-all">{formData.alternativeContactNumber}</p>
                       </div>
                     )}
                   </div>
                   <div className="border-t pt-3">
-                    <p className="text-sm text-gray-600 mb-2">Selected Games ({formData.selectedGames.length})</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-2">Selected Games ({formData.selectedGames.length})</p>
                     <div className="flex flex-wrap gap-2">
                       {formData.selectedGames.map((game) => (
                         <span
                           key={game}
-                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                          className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm"
                         >
                           {game}
                         </span>
@@ -553,17 +553,17 @@ export default function RegisterPage() {
                   </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between items-center">
-                      <p className="text-sm text-gray-600">Total Amount</p>
-                      <p className="text-2xl font-bold text-green-600">
+                      <p className="text-xs sm:text-sm text-gray-600">Total Amount</p>
+                      <p className="text-xl sm:text-2xl font-bold text-green-600">
                         Rs. {totalAmount.toLocaleString()}
                       </p>
                     </div>
                   </div>
                   <div className="border-t pt-3">
-                    <p className="text-sm text-gray-600">Payment Method</p>
-                    <p className="font-semibold capitalize">{formData.paymentMethod}</p>
+                    <p className="text-xs sm:text-sm text-gray-600">Payment Method</p>
+                    <p className="font-semibold capitalize text-sm sm:text-base">{formData.paymentMethod}</p>
                     {formData.transactionId && (
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1 break-all">
                         Transaction ID: {formData.transactionId}
                       </p>
                     )}
@@ -573,11 +573,12 @@ export default function RegisterPage() {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8">
               <Button
                 variant="outline"
                 onClick={() => setStep((s) => Math.max(1, s - 1))}
                 disabled={step === 1}
+                className="w-full sm:w-auto text-sm sm:text-base"
               >
                 Previous
               </Button>
@@ -585,7 +586,7 @@ export default function RegisterPage() {
                 <Button
                   onClick={() => setStep((s) => s + 1)}
                   disabled={!canProceed()}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 w-full sm:w-auto text-sm sm:text-base"
                 >
                   Next
                 </Button>
@@ -593,7 +594,7 @@ export default function RegisterPage() {
                 <Button
                   onClick={handleSubmit}
                   disabled={loading || !canProceed()}
-                  className="bg-gradient-to-r from-green-600 to-emerald-600"
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 w-full sm:w-auto text-sm sm:text-base"
                 >
                   {loading ? 'Submitting...' : 'Submit Registration'}
                 </Button>
