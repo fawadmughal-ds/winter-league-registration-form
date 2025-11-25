@@ -487,8 +487,13 @@ export default function AdminDashboard() {
                       </td>
                       <td className="p-3 sm:p-4">
                         <span className="font-semibold text-green-600 text-sm">
-                          Rs. {reg.total_amount?.toLocaleString() || '0'}
+                          Rs. {(reg.total_amount - (reg.discount || 0)).toLocaleString()}
                         </span>
+                        {(reg.discount && reg.discount > 0) && (
+                          <span className="text-xs text-gray-500 block mt-1">
+                            (Original: Rs. {reg.total_amount?.toLocaleString() || '0'})
+                          </span>
+                        )}
                       </td>
                       <td className="p-3 sm:p-4">
                         <span className="capitalize font-medium text-sm">{reg.payment_method}</span>
@@ -609,8 +614,13 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-semibold text-green-600">
-                          Rs. {reg.total_amount?.toLocaleString() || '0'}
+                          Rs. {(reg.total_amount - (reg.discount || 0)).toLocaleString()}
                         </span>
+                        {(reg.discount && reg.discount > 0) && (
+                          <span className="text-xs text-gray-500">
+                            (Orig: Rs. {reg.total_amount?.toLocaleString() || '0'})
+                          </span>
+                        )}
                         <span className="text-gray-500">•</span>
                         <span className="capitalize">{reg.payment_method}</span>
                       </div>
