@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS registrations (
   selected_games TEXT NOT NULL, -- JSON array of selected games
   team_members TEXT, -- JSON object: { gameName: [{ name, rollNumber, contactNumber }] }
   total_amount DECIMAL(10, 2) NOT NULL,
+  discount DECIMAL(10, 2) DEFAULT 0, -- Discount amount (e.g., 200)
   payment_method VARCHAR(20) NOT NULL CHECK (payment_method IN ('cash', 'online')),
   slip_id VARCHAR(50),
   transaction_id VARCHAR(255),

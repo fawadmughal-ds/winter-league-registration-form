@@ -56,7 +56,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status } = body;
+    const { status, discount } = body;
 
     if (!status) {
       return NextResponse.json(
@@ -74,9 +74,23 @@ export async function PATCH(
       );
     }
 
+    // Validate discount if provided
+    let discountValue = 0;
+    if (discount !== undefined && discount !== null) {
+      discountValue = Number(discount);
+      if (isNaN(discountValue) || discountValue < 0) {
+        return NextResponse.json(
+          { error: 'Invalid discount value. Must be a non-negative number.' },
+          { status: 400 }
+        );
+      }
+    }
+
     await sql`
       UPDATE registrations
-      SET status = ${status}, updated_at = NOW()
+      SET status = ${status}, 
+          discount = ${discountValue},
+          updated_at = NOW()
       WHERE id = ${params.id}
     `;
 

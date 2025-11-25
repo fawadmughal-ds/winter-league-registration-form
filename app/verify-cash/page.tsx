@@ -19,6 +19,7 @@ type Registration = {
   gender: string;
   selected_games: string[] | string;
   total_amount: number;
+  discount: number | null;
   payment_method: string;
   slip_id: string;
   status: string;
@@ -41,6 +42,7 @@ function VerifyCashContent() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
+  const [discount, setDiscount] = useState<string>('0');
 
   useEffect(() => {
     // Check admin authentication first
@@ -56,6 +58,13 @@ function VerifyCashContent() {
       setLoading(false);
     }
   }, [authenticated, regNum, slipId, checkingAuth]);
+
+  useEffect(() => {
+    // Set discount from registration when loaded
+    if (registration && registration.discount !== null && registration.discount !== undefined) {
+      setDiscount(registration.discount.toString());
+    }
+  }, [registration]);
 
   const checkAuth = async () => {
     try {
@@ -132,10 +141,20 @@ function VerifyCashContent() {
 
     setApproving(true);
     try {
+      const discountValue = parseFloat(discount) || 0;
+      if (discountValue < 0) {
+        alert('Discount cannot be negative');
+        setApproving(false);
+        return;
+      }
+
       const response = await fetch(`/api/registrations/${registration.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'paid' }),
+        body: JSON.stringify({ 
+          status: 'paid',
+          discount: discountValue
+        }),
       });
 
       const data = await response.json();
@@ -396,33 +415,53 @@ function VerifyCashContent() {
               </div>
             </div>
 
-            {/* Approve Button */}
+            {/* Discount Field and Approve Button */}
             {isPendingCash && (
-              <div className="flex gap-4">
-                <Button
-                  onClick={handleApprove}
-                  disabled={approving}
-                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-lg py-6"
-                >
-                  {approving ? (
-                    <>
-                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                      Approving...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="h-5 w-5 mr-2" />
-                      Approve Cash Payment
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={() => router.push('/admin/dashboard')}
-                  variant="outline"
-                  className="px-6"
-                >
-                  Go to Dashboard
-                </Button>
+              <div className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                  <Label htmlFor="discount" className="text-sm sm:text-base font-semibold mb-2 block">
+                    Discount Amount (Rs.)
+                  </Label>
+                  <Input
+                    id="discount"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value)}
+                    placeholder="0"
+                    className="text-base sm:text-lg font-semibold"
+                  />
+                  <p className="text-xs sm:text-sm text-gray-600 mt-2">
+                    Enter discount amount (e.g., 200). Final amount will be: Rs. {(registration.total_amount - (parseFloat(discount) || 0)).toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  <Button
+                    onClick={handleApprove}
+                    disabled={approving}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-lg py-6"
+                  >
+                    {approving ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Approving...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="h-5 w-5 mr-2" />
+                        Approve Cash Payment
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => router.push('/admin/dashboard')}
+                    variant="outline"
+                    className="px-6"
+                  >
+                    Go to Dashboard
+                  </Button>
+                </div>
               </div>
             )}
 

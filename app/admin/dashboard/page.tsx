@@ -48,6 +48,7 @@ type Registration = {
   gender: string;
   selected_games: string[] | string;
   total_amount: number;
+  discount: number | null;
   payment_method: string;
   slip_id: string | null;
   transaction_id: string | null;
@@ -80,6 +81,9 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editingDiscount, setEditingDiscount] = useState(false);
+  const [discountValue, setDiscountValue] = useState<string>('0');
+  const [savingDiscount, setSavingDiscount] = useState(false);
 
   useEffect(() => {
     // Verify authentication
@@ -191,7 +195,48 @@ export default function AdminDashboard() {
 
   const handleView = (reg: Registration) => {
     setSelectedRegistration(reg);
+    setDiscountValue(reg.discount?.toString() || '0');
+    setEditingDiscount(false);
     setViewDialogOpen(true);
+  };
+
+  const handleSaveDiscount = async () => {
+    if (!selectedRegistration) return;
+
+    const discountNum = parseFloat(discountValue) || 0;
+    if (discountNum < 0) {
+      alert('Discount cannot be negative');
+      return;
+    }
+
+    setSavingDiscount(true);
+    try {
+      const response = await fetch(`/api/registrations/${selectedRegistration.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          status: selectedRegistration.status,
+          discount: discountNum
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // Update local state
+        setSelectedRegistration({ ...selectedRegistration, discount: discountNum });
+        setEditingDiscount(false);
+        // Reload registrations to reflect changes
+        fetchRegistrations();
+        alert('Discount updated successfully!');
+      } else {
+        alert('Failed to update discount: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Update discount error:', error);
+      alert('Failed to update discount');
+    } finally {
+      setSavingDiscount(false);
+    }
   };
 
   const filteredRegistrations = registrations.filter((reg) => {
@@ -740,9 +785,65 @@ export default function AdminDashboard() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-600">Total Amount</p>
-                    <p className="font-semibold text-green-600 text-base sm:text-lg">
+                    <p className="text-xs sm:text-sm text-gray-600">Original Amount</p>
+                    <p className="font-semibold text-gray-700 text-base sm:text-lg">
                       Rs. {selectedRegistration.total_amount?.toLocaleString() || '0'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-600">Discount</p>
+                    {editingDiscount ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={discountValue}
+                          onChange={(e) => setDiscountValue(e.target.value)}
+                          className="w-24 h-8 text-sm"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleSaveDiscount}
+                          disabled={savingDiscount}
+                          className="h-8"
+                        >
+                          {savingDiscount ? '...' : 'Save'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setDiscountValue(selectedRegistration.discount?.toString() || '0');
+                            setEditingDiscount(false);
+                          }}
+                          className="h-8"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-red-600 text-base sm:text-lg">
+                          Rs. {(selectedRegistration.discount || 0).toLocaleString()}
+                        </p>
+                        {selectedRegistration.status !== 'paid' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingDiscount(true)}
+                            className="h-6 text-xs"
+                          >
+                            Edit
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <p className="text-xs sm:text-sm text-gray-600">Final Amount</p>
+                    <p className="font-semibold text-green-600 text-xl sm:text-2xl">
+                      Rs. {(selectedRegistration.total_amount - (selectedRegistration.discount || 0)).toLocaleString()}
                     </p>
                   </div>
                   <div>
