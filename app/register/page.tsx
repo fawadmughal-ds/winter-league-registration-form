@@ -144,8 +144,17 @@ export default function RegisterPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          email: formData.email,
+          name: formData.name,
+          rollNumber: formData.rollNumber,
+          contactNumber: formData.contactNumber,
+          alternativeContactNumber: formData.alternativeContactNumber,
+          gender: formData.gender,
+          selectedGames: formData.selectedGames,
           teamMembers: formData.teamMembers,
-          ...formData,
+          paymentMethod: formData.paymentMethod,
+          transactionId: formData.transactionId,
+          screenshotUrl: formData.screenshotUrl,
           totalAmount,
         }),
       });
