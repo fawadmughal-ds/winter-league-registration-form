@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,7 +25,7 @@ type Registration = {
   created_at: string;
 };
 
-export default function VerifyCashPage() {
+function VerifyCashContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const regNum = searchParams.get('regNum');
@@ -444,3 +444,16 @@ export default function VerifyCashPage() {
   );
 }
 
+export default function VerifyCashPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <VerifyCashContent />
+    </Suspense>
+  );
+}

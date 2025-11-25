@@ -1,14 +1,14 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Download, QrCode } from 'lucide-react';
 import QRCode from 'qrcode';
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const registrationId = searchParams.get('id');
   const registrationNumber = searchParams.get('regNum');
@@ -45,8 +45,6 @@ export default function SuccessPage() {
       // Generate QR code with better error correction and size
       QRCode.toDataURL(qrData, {
         errorCorrectionLevel: 'H', // High error correction for better scanning
-        type: 'image/png',
-        quality: 0.92,
         margin: 2,
         width: 300,
         color: {
@@ -215,6 +213,20 @@ export default function SuccessPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }
 

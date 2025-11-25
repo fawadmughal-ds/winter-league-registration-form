@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // GET - Verify registration by registration number or slip ID (Admin only - for QR code scanning)
 export async function GET(request: NextRequest) {
   try {
