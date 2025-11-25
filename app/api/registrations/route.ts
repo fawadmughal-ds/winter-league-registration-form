@@ -98,6 +98,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Force dynamic rendering and disable caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET - Fetch all registrations (admin only)
 export async function GET(request: NextRequest) {
   try {

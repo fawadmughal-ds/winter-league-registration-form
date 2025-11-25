@@ -98,8 +98,10 @@ export default function AdminDashboard() {
   }, [router]);
 
   const loadData = () => {
-    // Load stats
-    fetch('/api/stats')
+    // Load stats with cache-busting
+    fetch('/api/stats?' + new URLSearchParams({ _t: Date.now().toString() }), {
+      cache: 'no-store',
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -120,7 +122,9 @@ export default function AdminDashboard() {
       else if (filter === 'pending_cash') params.set('status', 'pending_cash');
     }
 
-    fetch(`/api/registrations?${params.toString()}`)
+    fetch(`/api/registrations?${params.toString()}`, {
+      cache: 'no-store',
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
