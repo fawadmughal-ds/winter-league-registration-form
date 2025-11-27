@@ -58,24 +58,37 @@ export async function PATCH(
     const body = await request.json();
     const { status, discount } = body;
 
-    if (!status) {
+    // At least one field must be provided
+    if (status === undefined && discount === undefined) {
       return NextResponse.json(
-        { error: 'Status is required' },
+        { error: 'At least one field (status or discount) is required' },
         { status: 400 }
       );
     }
 
-    // Validate status value
-    const validStatuses = ['pending_cash', 'pending_online', 'paid', 'rejected'];
-    if (!validStatuses.includes(status)) {
+    // First, fetch the current registration to preserve existing data
+    const currentResult = await sql`SELECT * FROM registrations WHERE id = ${params.id}`;
+    if (!currentResult || currentResult.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid status value' },
-        { status: 400 }
+        { error: 'Registration not found' },
+        { status: 404 }
       );
+    }
+    const currentRegistration = currentResult[0];
+
+    // Validate status value if provided
+    if (status !== undefined) {
+      const validStatuses = ['pending_cash', 'pending_online', 'paid', 'rejected'];
+      if (!validStatuses.includes(status)) {
+        return NextResponse.json(
+          { error: 'Invalid status value' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate discount if provided
-    let discountValue = 0;
+    let discountValue: number | null = null;
     if (discount !== undefined && discount !== null) {
       discountValue = Number(discount);
       if (isNaN(discountValue) || discountValue < 0) {
@@ -86,23 +99,52 @@ export async function PATCH(
       }
     }
 
-    await sql`
-      UPDATE registrations
-      SET status = ${status}, 
-          discount = ${discountValue},
-          updated_at = NOW()
-      WHERE id = ${params.id}
-    `;
+    // Build dynamic UPDATE query based on what fields are provided
+    // CRITICAL: Only update fields that are explicitly provided - preserve all other data
+    if (status !== undefined && discount !== undefined) {
+      // Update both status and discount
+      await sql`
+        UPDATE registrations
+        SET status = ${status}, 
+            discount = ${discountValue},
+            updated_at = NOW()
+        WHERE id = ${params.id}
+      `;
+    } else if (status !== undefined) {
+      // Update only status - DO NOT touch discount or any other fields
+      await sql`
+        UPDATE registrations
+        SET status = ${status}, 
+            updated_at = NOW()
+        WHERE id = ${params.id}
+      `;
+    } else if (discount !== undefined) {
+      // Update only discount - DO NOT touch status or any other fields
+      await sql`
+        UPDATE registrations
+        SET discount = ${discountValue},
+            updated_at = NOW()
+        WHERE id = ${params.id}
+      `;
+    }
 
+    // Fetch updated registration to verify the update
     const result = await sql`SELECT * FROM registrations WHERE id = ${params.id}`;
     const updated = result[0] || null;
 
     if (!updated) {
       return NextResponse.json(
-        { error: 'Registration not found' },
+        { error: 'Registration not found after update' },
         { status: 404 }
       );
     }
+
+    // Log the update for audit purposes
+    console.log(`Registration ${params.id} updated:`, {
+      status: status !== undefined ? status : 'unchanged',
+      discount: discount !== undefined ? discountValue : 'unchanged',
+      timestamp: new Date().toISOString()
+    });
 
     return NextResponse.json({ success: true, data: updated });
   } catch (error: any) {
