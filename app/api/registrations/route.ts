@@ -112,42 +112,92 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const paymentMethod = searchParams.get('paymentMethod');
     const gender = searchParams.get('gender');
+    const game = searchParams.get('game');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
 
-    // Build query dynamically based on filters
-    let finalQuery;
-    if (status && paymentMethod && gender) {
-      finalQuery = sql`SELECT * FROM registrations WHERE status = ${status} AND payment_method = ${paymentMethod} AND gender = ${gender} ORDER BY created_at DESC`;
-    } else if (status && paymentMethod) {
-      finalQuery = sql`SELECT * FROM registrations WHERE status = ${status} AND payment_method = ${paymentMethod} ORDER BY created_at DESC`;
-    } else if (status && gender) {
-      finalQuery = sql`SELECT * FROM registrations WHERE status = ${status} AND gender = ${gender} ORDER BY created_at DESC`;
-    } else if (paymentMethod && gender) {
-      finalQuery = sql`SELECT * FROM registrations WHERE payment_method = ${paymentMethod} AND gender = ${gender} ORDER BY created_at DESC`;
-    } else if (status) {
-      finalQuery = sql`SELECT * FROM registrations WHERE status = ${status} ORDER BY created_at DESC`;
-    } else if (paymentMethod) {
-      finalQuery = sql`SELECT * FROM registrations WHERE payment_method = ${paymentMethod} ORDER BY created_at DESC`;
-    } else if (gender) {
-      finalQuery = sql`SELECT * FROM registrations WHERE gender = ${gender} ORDER BY created_at DESC`;
-    } else {
-      finalQuery = sql`SELECT * FROM registrations ORDER BY created_at DESC`;
+    console.log('API Filters received:', { status, paymentMethod, gender, game, startDate, endDate });
+
+    // Build query with all filters using parameterized SQL (avoids nested template issues)
+    let queryText = 'SELECT * FROM registrations';
+    const whereClauses: string[] = [];
+    const params: any[] = [];
+
+    if (status) {
+      params.push(status);
+      whereClauses.push(`status = $${params.length}`);
+    }
+    if (paymentMethod) {
+      params.push(paymentMethod);
+      whereClauses.push(`payment_method = $${params.length}`);
+    }
+    if (gender) {
+      params.push(gender);
+      whereClauses.push(`gender = $${params.length}`);
+    }
+    if (startDate) {
+      // Compare against created_date column (DATE type)
+      params.push(startDate);
+      whereClauses.push(`created_date >= $${params.length}`);
+    }
+    if (endDate) {
+      params.push(endDate);
+      whereClauses.push(`created_date <= $${params.length}`);
     }
 
-    const registrations = await finalQuery;
+    if (whereClauses.length > 0) {
+      queryText += ' WHERE ' + whereClauses.join(' AND ');
+    }
+    queryText += ' ORDER BY created_at DESC';
+
+    // Use the generic query helper to execute parameterized SQL
+    const registrations = await sql(queryText, params) as any[];
+    console.log(`Found ${registrations.length} registrations before game filter`);
 
     // Parse selected_games JSON for each registration
-    const parsedRegistrations = registrations.map((reg: any) => ({
-      ...reg,
-      selected_games: typeof reg.selected_games === 'string' 
-        ? JSON.parse(reg.selected_games) 
-        : reg.selected_games,
-    }));
+    let parsedRegistrations = registrations.map((reg: any) => {
+      let selectedGames: string[] = [];
+      try {
+        if (typeof reg.selected_games === 'string') {
+          selectedGames = JSON.parse(reg.selected_games);
+        } else if (Array.isArray(reg.selected_games)) {
+          selectedGames = reg.selected_games;
+        }
+      } catch (e) {
+        selectedGames = [];
+      }
+      return {
+        ...reg,
+        selected_games: selectedGames,
+      };
+    });
 
+    // Filter by game if specified (client-side filtering for JSON field)
+    if (game) {
+      const beforeCount = parsedRegistrations.length;
+      parsedRegistrations = parsedRegistrations.filter((reg: any) => {
+        return Array.isArray(reg.selected_games) && reg.selected_games.includes(game);
+      });
+      console.log(`Game filter "${game}": ${beforeCount} -> ${parsedRegistrations.length} registrations`);
+    }
+
+    console.log(`Returning ${parsedRegistrations.length} filtered registrations`);
     return NextResponse.json({ success: true, data: parsedRegistrations });
   } catch (error: any) {
     console.error('Fetch registrations error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint,
+      stack: error.stack,
+    });
     return NextResponse.json(
-      { error: 'Failed to fetch registrations', details: error.message },
+      { 
+        error: 'Failed to fetch registrations', 
+        details: error.message,
+        hint: error.hint || 'Check server console for full error details'
+      },
       { status: 500 }
     );
   }
